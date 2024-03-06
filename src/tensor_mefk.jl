@@ -9,10 +9,11 @@ struct MEF3T{F<:AbstractFloat}
     W2_mask::AbstractMatrix{F}
     W3_mask::AbstractArray{F}
     gradients::AbstractVector
+    array_cast
 
 
-    function MEF3T(n::Int, W1, W2, W3, mW2, mW3, gradients)
-        new{Float32}(n, W1, W2, W3, mW2, mW3, gradients)
+    function MEF3T(n::Int, W1, W2, W3, mW2, mW3, gradients, array_cast)
+        new{Float32}(n, W1, W2, W3, mW2, mW3, gradients, array_cast)
     end
 
     function MEF3T(n::Int, W1, W2, W3; array_cast=Array)
@@ -22,7 +23,7 @@ struct MEF3T{F<:AbstractFloat}
             zeros(n),
             zeros(n, n) |> array_cast,
             zeros(n, n, n) |> array_cast]
-        MEF3T(n, W1, W2, W3, W2_mask, W3_mask, gradients)
+        MEF3T(n, W1, W2, W3, W2_mask, W3_mask, gradients, array_cast)
     end
 
     function MEF3T(n::Int; array_cast=Array)
@@ -84,7 +85,7 @@ function retrieve_reset_gradients!(net::MEF3T, symmetrize=true)
     net.gradients[2] .= 0
     net.gradients[3] .= 0
     (n=nothing, W1=g1, W2=g2, W3=g3, W2_mask=nothing, W3_mask=nothing,
-        gradients=nothing)
+        gradients=nothing, array_cast=nothing)
 end
 
 
@@ -96,13 +97,13 @@ end
 
 
 function (net::MEF3T)(x::AbstractMatrix, counts::AbstractVector;
-                      array_cast=Array, iterate_nodes=nothing,
-                      symmetrize_grad=true)
+                      iterate_nodes=nothing, symmetrize_grad=true)
+    x = x |> net.array_cast
     W1 = net.W1
     W2 = net.W2
     W3 = net.W3
     loss = 0
-    counts = counts |> array_cast
+    counts = counts |> net.array_cast
     counts ./= sum(counts)
     iterate_nodes = isnothing(iterate_nodes) ? (1:net.n) : iterate_nodes
     for i in iterate_nodes
@@ -110,7 +111,7 @@ function (net::MEF3T)(x::AbstractMatrix, counts::AbstractVector;
         use_W1 = W1[i]
         use_W2 = W2[i, :]
         use_W3 = W3[i, :, :]
-        bit_obj = mef_obj(use_W1, use_W2, use_W3, x, flip, counts, array_cast)
+        bit_obj = mef_obj(use_W1, use_W2, use_W3, x, flip, counts, net.array_cast)
         loss += sum(bit_obj)
 
         flip_bit_obj = flip .* bit_obj .* counts
@@ -133,9 +134,8 @@ function mef_obj(W1, W2, W3, x, flip, counts, array_cast)
 end
 
 
-function dynamics(net::MEF3T, x::AbstractMatrix; array_cast=Array,
-        iterate_nodes=nothing)
-    x_ = x[:, :]
+function dynamics(net::MEF3T, x::AbstractMatrix; iterate_nodes=nothing)
+    x_ = x[:, :] |> net.array_cast
     iterate_nodes = isnothing(iterate_nodes) ? (1:net.n) : iterate_nodes
     for i in iterate_nodes
         out = dyn_step(net, x_, i)
@@ -152,20 +152,21 @@ function dyn_step(net::MEF3T, x_, i)
 end
 
 
-function energy(net::MEF3T, x::AbstractMatrix; array_cast=Array)
+function energy(net::MEF3T, x::AbstractMatrix)
     m, n = size(x)
-    energy1 = x * (net.W1 |> array_cast)
-    energy2 = diag((x * net.W2) * x' |> Array) |> array_cast
+    x = x |> net.array_cast
+    energy1 = x * (net.W1 |> net.array_cast)
+    energy2 = diag((x * net.W2) * x' |> Array) |> net.array_cast
 
-    tmp1 = zeros(m, n, n) |> array_cast
+    tmp1 = zeros(m, n, n) |> net.array_cast
     for i in 1:n
         tmp1[:, :, i] = x * net.W3[:, :, i]
     end
-    tmp2 = zeros(m, n) |> array_cast
+    tmp2 = zeros(m, n) |> net.array_cast
     for i in 1:m
         tmp2[i, :] = x[i, :]' * tmp1[i, :, :]
     end
-    energy3 = diag((x * tmp2') |> Array) |> array_cast
+    energy3 = diag((x * tmp2') |> Array) |> net.array_cast
 
     -(energy1 + energy2 + energy3)
 end

@@ -7,13 +7,12 @@ module MEFK
     abstract type MPNK end
 
 
-    function dynamics(net::MPNK, x::AbstractMatrix{Int8}; array_cast=Array,
-        iterate_nodes=nothing)
+    function dynamics(net::MPNK, x::AbstractMatrix{Int8}; iterate_nodes=nothing)
         m, n = size(x)
-        x_ = x[:, :]
+        x_ = x[:, :] |> net.array_cast
         iterate_nodes = isnothing(iterate_nodes) ? (1:n) : iterate_nodes
         for i in iterate_nodes
-            en = (ones(m) |> array_cast) .* net.W[1][i]
+            en = (ones(m) |> net.array_cast) .* net.W[1][i]
             for (order, (inds, winds)) in enumerate(zip(net.indices[i], net.windices[i]))
                 mult = prod_bits(x_, inds)
                 en += mult * net.W[order+1][winds] .* factorial(order+1)
@@ -25,9 +24,9 @@ module MEFK
 
 
     # TODO define the probability distribution for MPNK
-    function energy(net::MPNK, x::AbstractMatrix{Int8}; array_cast=Array)
-        x = x |> array_cast
-        en = x * (net.W[1] |> array_cast)
+    function energy(net::MPNK, x::AbstractMatrix{Int8})
+        x = x |> net.array_cast
+        en = x * (net.W[1] |> net.array_cast)
         for i in 1:net.n
             for (order, (inds, winds)) in enumerate(zip(net.indices[i], net.windices[i]))
                 mult = x[:, i] .* prod_bits(x, inds)
@@ -54,15 +53,17 @@ module MEFK
         grad::Vector{AbstractVector{F}}
         indices::Vector{Vector{AbstractMatrix{Int}}}
         windices::Vector{Vector{AbstractVector{Int}}}
+        array_cast
 
-        function MEFMPNK(n::Int, N::Int, W, grad, indices, windices)
+
+        function MEFMPNK(n::Int, N::Int, W, grad, indices, windices, array_cast)
             F = Float32
-            new{F}(n, N, W, grad, indices, windices)
+            new{F}(n, N, W, grad, indices, windices, array_cast)
         end
 
-        function MEFMPNK(n::Int, N::Int, W, indices, windices)
+        function MEFMPNK(n::Int, N::Int, W, indices, windices, array_cast)
             grad = [w[:] for w in W]
-            MEFMPNK(n, N, W, grad, indices, windices)
+            MEFMPNK(n, N, W, grad, indices, windices, array_cast)
         end
 
         """Creates all weights"""
@@ -72,7 +73,7 @@ module MEFK
             winds = [[wi |> array_cast for wi in wind] for wind in winds]
             W = DenseArray[zeros(dtype, binomial(n, i)) |> array_cast for i in 2:N]
             pushfirst!(W, zeros(dtype, n))
-            MEFMPNK(n, N, W, inds, winds)
+            MEFMPNK(n, N, W, inds, winds, array_cast)
         end
 
         """Given a set of indices, create weights and windices"""
@@ -87,7 +88,7 @@ module MEFK
             orig_inds = zip(orig_inds_byorder...) |> collect
             winds = [[[ind2wind[ord][indordi] for indordi in indord] |> array_cast for (ord, indord) in enumerate(ind)] for ind in orig_inds]
             inds = [[i |> array_cast for i in ind] for ind in inds]
-            MEFMPNK(n, N, W, inds, winds)
+            MEFMPNK(n, N, W, inds, winds, array_cast)
         end
     end
 
@@ -112,18 +113,18 @@ module MEFK
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, first_iter::Bool=false; array_cast=Array, iterate_nodes=nothing)
+    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, first_iter::Bool=false, iterate_nodes=nothing)
         sz = size(x)[1]
         counts = ones(sz)
-	    net(x, counts, first_iter; array_cast=array_cast, iterate_nodes=iterate_nodes)
+	    net(x, counts, first_iter; iterate_nodes=iterate_nodes)
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, counts::AbstractVector, first_iter::Bool=false; array_cast=Array, iterate_nodes=nothing)
+    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, counts::AbstractVector, first_iter::Bool=false; iterate_nodes=nothing)
 	    # compute objective
         obj = 0
-        x = x |> array_cast
-        counts = counts |> array_cast
+        x = x |> net.array_cast
+        counts = counts |> net.array_cast
         counts ./= sum(counts)
         for g in net.grad
             fill!(g, 0)
@@ -134,7 +135,7 @@ module MEFK
             flip = 1 .- 2 .* x[:, i]
 
             if first_iter
-                obj_i = ones(size(counts)...) |> array_cast
+                obj_i = ones(size(counts)...) |> net.array_cast
             else
             # TODO maybe make this loop async? Then grads need to be synced/replicated
                 obj_i = mef_obj(net, x, flip, i, counts; per_bit=true)
@@ -150,7 +151,7 @@ module MEFK
         @sync for (i, g) in enumerate(net.grad)
             @async g ./= factorial(i)
         end
-        grads = (n=nothing, N=nothing, W=net.grad, grad=nothing, indices=nothing, windices=nothing)
+        grads = (n=nothing, N=nothing, W=net.grad, grad=nothing, indices=nothing, windices=nothing, array_cast=nothing)
         obj, grads
     end
 
