@@ -96,7 +96,8 @@ end
 
 
 function (net::MEF3T)(x::AbstractMatrix, counts::AbstractVector;
-                      array_cast=Array, iterate_nodes=nothing)
+                      array_cast=Array, iterate_nodes=nothing,
+                      symmetrize_grad=true)
     W1 = net.W1
     W2 = net.W2
     W3 = net.W3
@@ -118,7 +119,7 @@ function (net::MEF3T)(x::AbstractMatrix, counts::AbstractVector;
         net.gradients[3][i, :, :] += broadcast(*, flip_bit_obj, x)' * x ./ 2
     end
 
-    return loss
+    return loss, retrieve_reset_gradients!(net, symmetrize_grad)
 end
 
 

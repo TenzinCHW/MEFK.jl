@@ -7,8 +7,7 @@ counts = ones(2)
 
 
 for i in 1:100
-    loss = model(x, counts)
-    grads = MEFK.retrieve_reset_gradients!(model)
+    loss, grads = model(x, counts)
     Flux.update!(optim, model, grads)
 end
 
@@ -21,8 +20,7 @@ model = MEFK.MEF3T(4)
 optim = Flux.setup(Flux.Adam(0.1), model)
 
 for i in 1:100
-    loss = model(x, counts; iterate_nodes=3:4)
-    grads = MEFK.retrieve_reset_gradients!(model, false)
+    loss, grads = model(x, counts; iterate_nodes=3:4, symmetrize_grad=false)
     Flux.update!(optim, model, grads)
 end
 

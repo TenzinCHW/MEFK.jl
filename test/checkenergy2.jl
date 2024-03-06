@@ -14,8 +14,7 @@ optim = Flux.setup(Flux.Adam(0.1), net_full)
 
 
 for it in 1:100
-    loss = net_full(x, counts)
-    grads = MEFK.retrieve_reset_gradients!(net_full)
+    loss, grads = net_full(x, counts)
     Flux.update!(optim, net_full, grads)
 end
 
