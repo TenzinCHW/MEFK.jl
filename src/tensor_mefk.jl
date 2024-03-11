@@ -76,14 +76,16 @@ function adjust_W2(net::MEF3T, symmetrize::Bool)
 end
 
 
-function retrieve_reset_gradients!(net::MEF3T, symmetrize=true)
+function retrieve_reset_gradients!(net::MEF3T, symmetrize=true, reset_grad=false)
     g1 = net.gradients[1][:]
     g2 = adjust_W2(net, symmetrize)
     g3 = adjust_W3(net, symmetrize)
 
-    net.gradients[1] .= 0
-    net.gradients[2] .= 0
-    net.gradients[3] .= 0
+    if reset_grad
+        net.gradients[1] .= 0
+        net.gradients[2] .= 0
+        net.gradients[3] .= 0
+    end
     (n=nothing, W1=g1, W2=g2, W3=g3, W2_mask=nothing, W3_mask=nothing,
         gradients=nothing, array_cast=nothing)
 end
@@ -97,7 +99,7 @@ end
 
 
 function (net::MEF3T)(x::AbstractMatrix, counts::AbstractVector;
-                      iterate_nodes=nothing, symmetrize_grad=true)
+                      iterate_nodes=nothing, symmetrize_grad=true, reset_grad=false)
     x = x |> net.array_cast
     W1 = net.W1
     W2 = net.W2
@@ -120,7 +122,7 @@ function (net::MEF3T)(x::AbstractMatrix, counts::AbstractVector;
         net.gradients[3][i, :, :] += broadcast(*, flip_bit_obj, x)' * x ./ 2
     end
 
-    return loss, retrieve_reset_gradients!(net, symmetrize_grad)
+    return loss, retrieve_reset_gradients!(net, symmetrize_grad, reset_grad)
 end
 
 
