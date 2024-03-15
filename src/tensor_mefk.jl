@@ -94,7 +94,7 @@ end
 function (net::MEF3T)(x::AbstractMatrix; array_cast=Array, iterate_nodes=nothing)
     sz = size(x)[1]
     counts = ones(sz)
-    net(x, counts; array_cast=array_cast, iterate_nodes=iterate_nodes)
+    net(x, counts; iterate_nodes=iterate_nodes)
 end
 
 
