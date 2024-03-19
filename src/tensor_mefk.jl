@@ -91,10 +91,10 @@ function retrieve_reset_gradients!(net::MEF3T; symmetrize=true, reset_grad=false
 end
 
 
-function (net::MEF3T)(x::AbstractMatrix; array_cast=Array, iterate_nodes=nothing)
+function (net::MEF3T)(x::AbstractMatrix; iterate_nodes=nothing, reset_grad=false)
     sz = size(x)[1]
     counts = ones(sz)
-    net(x, counts; iterate_nodes=iterate_nodes)
+    net(x, counts; iterate_nodes=iterate_nodes, reset_grad=reset_grad)
 end
 
 
@@ -106,7 +106,7 @@ function (net::MEF3T)(x::AbstractMatrix, counts::AbstractVector;
     W3 = net.W3
     loss = 0
     counts = counts |> net.array_cast
-    counts ./= sum(counts)
+    #counts ./= sum(counts)
     iterate_nodes = isnothing(iterate_nodes) ? (1:net.n) : iterate_nodes
     for i in iterate_nodes
         flip = 1 .- 2 .* x[:, i]

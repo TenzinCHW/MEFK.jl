@@ -7,7 +7,7 @@ counts = ones(2)
 
 
 for i in 1:100
-    loss, grads = model(x, counts)
+    loss, grads = model(x, counts; reset_grad=true)
     Flux.update!(optim, model, grads)
 end
 
@@ -20,7 +20,7 @@ model = MEFK.MEF3T(4)
 optim = Flux.setup(Flux.Adam(0.1), model)
 
 for i in 1:100
-    loss, grads = model(x, counts; iterate_nodes=3:4, symmetrize_grad=false)
+    loss, grads = model(x, counts; iterate_nodes=3:4, symmetrize_grad=false, reset_grad=true)
     Flux.update!(optim, model, grads)
 end
 

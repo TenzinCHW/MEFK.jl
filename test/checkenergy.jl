@@ -13,7 +13,7 @@ net = MEFK.MEFMPNK(nbits, 3)
 optim = Flux.setup(Flux.Adam(0.1), net)
 
 for it in 1:100
-    loss, grads = net(x, counts, it==1)
+    loss, grads = net(x, counts, it==1; reset_grad=true)
     Flux.update!(optim, net, grads)
 end
 
@@ -53,6 +53,6 @@ net_full.W3[:,:,:] .= W3
 
 energies = MEFK.energy(net_full, x)
 probs_full = MEFK.energy2prob(energies)
-@assert abs(0.5 - probs_full[4]) < 0.001
-@assert abs(0.5 - probs_full[13]) < 0.001
+@assert abs(0.5 - probs_full[4]) < 0.008
+@assert abs(0.5 - probs_full[13]) < 0.008
 

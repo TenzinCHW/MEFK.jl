@@ -113,22 +113,35 @@ module MEFK
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, first_iter::Bool=false, iterate_nodes=nothing)
-        sz = size(x)[1]
-        counts = ones(sz)
-	    net(x, counts, first_iter; iterate_nodes=iterate_nodes)
+    function retrieve_reset_gradients!(net::MEFMPNK; reset_grad=false)
+        if reset_grad
+            @sync for (i, g) in enumerate(net.grad)
+                @async g ./= factorial(i)
+            end
+        end
+        grads = (n=nothing, N=nothing, W=[g[:] for g in net.grad], grad=nothing, indices=nothing, windices=nothing, array_cast=nothing)
+        if reset_grad
+            for g in net.grad
+                fill!(g, 0)
+            end
+        end
+        grads
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, counts::AbstractVector, first_iter::Bool=false; iterate_nodes=nothing)
+    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
+        sz = size(x)[1]
+        counts = ones(sz)
+	    net(x, counts, first_iter; iterate_nodes=iterate_nodes, reset_grad=reset_grad)
+    end
+
+
+    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, counts::AbstractVector, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
 	    # compute objective
         obj = 0
         x = x |> net.array_cast
         counts = counts |> net.array_cast
-        counts ./= sum(counts)
-        for g in net.grad
-            fill!(g, 0)
-        end
+        #counts ./= sum(counts)
         grad_inp = []
         iterate_nodes = isnothing(iterate_nodes) ? (1:net.n) : iterate_nodes
         for i in iterate_nodes
@@ -148,11 +161,7 @@ module MEFK
             gradient(net, gr..., counts)
         end
 
-        @sync for (i, g) in enumerate(net.grad)
-            @async g ./= factorial(i)
-        end
-        grads = (n=nothing, N=nothing, W=net.grad, grad=nothing, indices=nothing, windices=nothing, array_cast=nothing)
-        obj, grads
+        obj, retrieve_reset_gradients!(net; reset_grad=reset_grad)
     end
 
 

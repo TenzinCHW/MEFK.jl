@@ -14,7 +14,7 @@ optim = Flux.setup(Flux.Adam(0.1), net_full)
 
 
 for it in 1:100
-    loss, grads = net_full(x, counts)
+    loss, grads = net_full(x, counts; reset_grad=true)
     Flux.update!(optim, net_full, grads)
 end
 
