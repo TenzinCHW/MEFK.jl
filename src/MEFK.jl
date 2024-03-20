@@ -48,7 +48,7 @@ module MEFK
 
     struct MEFMPNK{F<:AbstractFloat}<:MPNK
         n::Int
-        N::Int
+        K::Int
         W::Vector{AbstractVector{F}}
         grad::Vector{AbstractVector{F}}
         indices::Vector{Vector{AbstractMatrix{Int}}}
@@ -56,30 +56,30 @@ module MEFK
         array_cast
 
 
-        function MEFMPNK(n::Int, N::Int, W, grad, indices, windices, array_cast)
+        function MEFMPNK(n::Int, K::Int, W, grad, indices, windices, array_cast)
             F = Float32
-            new{F}(n, N, W, grad, indices, windices, array_cast)
+            new{F}(n, K, W, grad, indices, windices, array_cast)
         end
 
-        function MEFMPNK(n::Int, N::Int, W, indices, windices, array_cast)
+        function MEFMPNK(n::Int, K::Int, W, indices, windices, array_cast)
             grad = [w[:] for w in W]
-            MEFMPNK(n, N, W, grad, indices, windices, array_cast)
+            MEFMPNK(n, K, W, grad, indices, windices, array_cast)
         end
 
         """Creates all weights"""
-        function MEFMPNK(n::Int, N::Int, dtype::D=Float32; array_cast=Array) where {D<:DataType}
-            inds, winds = make_inds_winds(n, N)
+        function MEFMPNK(n::Int, K::Int, dtype::D=Float32; array_cast=Array) where {D<:DataType}
+            inds, winds = make_inds_winds(n, K)
             inds = [[i |> array_cast for i in ind] for ind in inds]
             winds = [[wi |> array_cast for wi in wind] for wind in winds]
-            W = DenseArray[zeros(dtype, binomial(n, i)) |> array_cast for i in 2:N]
+            W = DenseArray[zeros(dtype, binomial(n, i)) |> array_cast for i in 2:K]
             pushfirst!(W, zeros(dtype, n))
-            MEFMPNK(n, N, W, inds, winds, array_cast)
+            MEFMPNK(n, K, W, inds, winds, array_cast)
         end
 
         """Given a set of indices, create weights and windices"""
-        function MEFMPNK(n::Int, N::Int, inds::Vector{Vector{Matrix{Int}}}, dtype::D=Float32; array_cast=Array) where {D<:DataType}
+        function MEFMPNK(n::Int, K::Int, inds::Vector{Vector{Matrix{Int}}}, dtype::D=Float32; array_cast=Array) where {D<:DataType}
             # collect unique inds in each order and create Dict, index into it to make winds
-            orig_inds_byorder = [[[push!(val |> Array, i) |> sort for val in eachslice(ind[ord], dims=1)] for (i, ind) in enumerate(inds)] for ord in 1:N-1]
+            orig_inds_byorder = [[[push!(val |> Array, i) |> sort for val in eachslice(ind[ord], dims=1)] for (i, ind) in enumerate(inds)] for ord in 1:K-1]
             unique_inds = [Iterators.flatten(uind) |> collect |> unique |> Array
                            for uind in orig_inds_byorder]
             W = DenseArray[zeros(dtype, length(uind)) |> array_cast for uind in unique_inds]
@@ -88,7 +88,7 @@ module MEFK
             orig_inds = zip(orig_inds_byorder...) |> collect
             winds = [[[ind2wind[ord][indordi] for indordi in indord] |> array_cast for (ord, indord) in enumerate(ind)] for ind in orig_inds]
             inds = [[i |> array_cast for i in ind] for ind in inds]
-            MEFMPNK(n, N, W, inds, winds, array_cast)
+            MEFMPNK(n, K, W, inds, winds, array_cast)
         end
     end
 
@@ -96,9 +96,9 @@ module MEFK
     @functor MEFMPNK
 
 
-    function make_inds_winds(n::Int, N::Int)
-        @assert 0 < N <= n
-        combs = [collect(enumerate(combinations(1:n, i))) for i in 1:N]
+    function make_inds_winds(n::Int, K::Int)
+        @assert 0 < K <= n
+        combs = [collect(enumerate(combinations(1:n, i))) for i in 1:K]
         indices = [[filter(x->!(j in x[2]), comb) for comb in combs[1:end-1]] for j in 1:n]
         windices = [[filter(x->j in x[2], comb) for comb in combs[2:end]] for j in 1:n]
         [[reduce(vcat, transpose.([i[2] for i in ind])) for ind in inds] for inds in indices],
@@ -119,7 +119,7 @@ module MEFK
                 @async g ./= factorial(i)
             end
         end
-        grads = (n=nothing, N=nothing, W=[g[:] for g in net.grad], grad=nothing, indices=nothing, windices=nothing, array_cast=nothing)
+        grads = (n=nothing, K=nothing, W=[g[:] for g in net.grad], grad=nothing, indices=nothing, windices=nothing, array_cast=nothing)
         if reset_grad
             for g in net.grad
                 fill!(g, 0)
@@ -179,7 +179,7 @@ module MEFK
 
     function mef_obj(net::MEFMPNK, x, flip, i, counts; per_bit=false)
         energy = Any[flip .* net.W[1][i]]
-        for _ in 2:net.N
+        for _ in 2:net.K
             push!(energy, 0)
         end
         @sync for (order, (inds, winds)) in enumerate(zip(net.indices[i], net.windices[i]))

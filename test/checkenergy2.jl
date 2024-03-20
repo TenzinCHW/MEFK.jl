@@ -25,7 +25,7 @@ probs_full = MEFK.energy2prob(energies)
 
 
 net = MEFK.MEFMPNK(nbits, 3)
-for i in 1:net.N
+for i in 1:net.K
     empty!(net.W[i])
 end
 for w in net_full.W1
