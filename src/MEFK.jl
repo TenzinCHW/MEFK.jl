@@ -7,7 +7,7 @@ module MEFK
     abstract type MPNK end
 
 
-    function dynamics(net::MPNK, x::AbstractMatrix{Int8}; iterate_nodes=nothing)
+    function dynamics(net::MPNK, x::AbstractMatrix; iterate_nodes=nothing)
         m, n = size(x)
         x_ = x[:, :] |> net.array_cast
         iterate_nodes = isnothing(iterate_nodes) ? (1:n) : iterate_nodes
@@ -24,7 +24,7 @@ module MEFK
 
 
     # TODO define the probability distribution for MPNK
-    function energy(net::MPNK, x::AbstractMatrix{Int8})
+    function energy(net::MPNK, x::AbstractMatrix)
         x = x |> net.array_cast
         en = x * (net.W[1] |> net.array_cast)
         for i in 1:net.n
@@ -106,7 +106,7 @@ module MEFK
     end
 
 
-    function prod_bits(x::AbstractMatrix{Int8}, inds)
+    function prod_bits(x::AbstractMatrix, inds)
         xv = @view x[:, inds]
         mult = prod(xv, dims=3)
         mult[:, :, 1]
@@ -129,14 +129,14 @@ module MEFK
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
+    function (net::MEFMPNK)(x::AbstractMatrix, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
         sz = size(x)[1]
         counts = ones(sz)
 	    net(x, counts, first_iter; iterate_nodes=iterate_nodes, reset_grad=reset_grad)
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix{Int8}, counts::AbstractVector, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
+    function (net::MEFMPNK)(x::AbstractMatrix, counts::AbstractVector, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
 	    # compute objective
         obj = 0
         x = x |> net.array_cast
