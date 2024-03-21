@@ -67,7 +67,7 @@ end
     
 
 
-function adjust_W2(net::MEF3T, symmetrize::Bool)
+function adjust_W2(net::Union{MEF3T, MEF2T}, symmetrize::Bool)
     g2 = net.gradients[2][:, :]
     if symmetrize
         g2 = (g2 + g2') ./ 2

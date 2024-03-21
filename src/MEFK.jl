@@ -1,6 +1,7 @@
 module MEFK
     import Combinatorics: combinations
     import Flux: @functor
+    include("matrix_mefk.jl")
     include("tensor_mefk.jl")
 
 
