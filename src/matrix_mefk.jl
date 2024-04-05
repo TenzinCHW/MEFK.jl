@@ -27,6 +27,15 @@ struct MEF2T{F<:AbstractFloat}
         W2 = zeros(n, n) |> array_cast
         MEF2T(n, W1, W2; array_cast=array_cast)
     end
+
+    function MEF2T(net::MEF2T, array_cast=Array)
+        MEF2T(net.n,
+              net.W1 |> array_cast,
+              net.W2 |> array_cast,
+              net.W2_mask |> array_cast,
+              net.gradients .|> array_cast,
+              array_cast)
+    end
 end
 
 

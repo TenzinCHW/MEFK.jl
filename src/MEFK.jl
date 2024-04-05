@@ -91,6 +91,15 @@ module MEFK
             inds = [[i |> array_cast for i in ind] for ind in inds]
             MEFMPNK(n, K, W, inds, winds, array_cast)
         end
+
+        function MEFMPNK(net::MEFMPNK, array_cast=Array)
+            MEFMPNK(net.n,
+                    net.K,
+                    [W |> array_cast for W in net.W], [g |> array_cast for g in net.grad],
+                    [ind .|> array_cast for ind in net.indices],
+                    [wind .|> array_cast for wind in net.windices],
+                    array_cast)
+        end
     end
 
 

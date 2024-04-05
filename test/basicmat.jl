@@ -1,6 +1,7 @@
 import MEFK, Flux, LinearAlgebra
 
 model = MEFK.MEF2T(4)
+model = MEFK.MEF2T(model, Array)
 optim = Flux.setup(Flux.Adam(0.1), model)
 x = [[1, 0, 1, 0] [0, 1, 0, 1]]' .|> Int8
 counts = ones(2)

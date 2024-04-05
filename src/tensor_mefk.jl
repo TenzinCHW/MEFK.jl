@@ -32,6 +32,17 @@ struct MEF3T{F<:AbstractFloat}
         W3 = zeros(n, n, n) |> array_cast
         MEF3T(n, W1, W2, W3; array_cast=array_cast)
     end
+
+    function MEF3T(net::MEF3T, array_cast=Array)
+        MEF3T(net.n,
+              net.W1 |> array_cast,
+              net.W2 |> array_cast,
+              net.W3 |> array_cast,
+              net.W2_mask |> array_cast,
+              net.W3_mask |> array_cast,
+              net.gradients .|> array_cast,
+              array_cast)
+    end
 end
 
 

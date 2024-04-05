@@ -6,6 +6,7 @@ n = 4
 N = 2
 model = MEFMPNK(n, N)
 inds, _ = make_inds_winds(n, N)
+model = MEFMPNK(model, Array) # Test device transfer function
 model = MEFMPNK(n, N, inds) # Test both constructors
 optim = Flux.setup(Flux.Adam(0.1), model)
 x = [[1, 0, 1, 0] [0, 1, 0, 1]]' .|> Int8
