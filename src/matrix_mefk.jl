@@ -30,7 +30,7 @@ struct MEF2T{F<:AbstractFloat}
 
     function MEF2T(net::MEF2T, array_cast=Array)
         MEF2T(net.n,
-              net.W1 |> array_cast,
+              net.W1,
               net.W2 |> array_cast,
               net.W2_mask |> array_cast,
               net.gradients .|> array_cast,

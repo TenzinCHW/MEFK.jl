@@ -35,7 +35,7 @@ struct MEF3T{F<:AbstractFloat}
 
     function MEF3T(net::MEF3T, array_cast=Array)
         MEF3T(net.n,
-              net.W1 |> array_cast,
+              net.W1,
               net.W2 |> array_cast,
               net.W3 |> array_cast,
               net.W2_mask |> array_cast,
