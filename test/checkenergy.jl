@@ -13,7 +13,7 @@ net = MEFK.MEFMPNK(nbits, 3)
 optim = Flux.setup(Flux.Adam(0.1), net)
 
 for it in 1:100
-    loss, grads = net(x, counts, it==1; reset_grad=true)
+    loss, grads = net(x, counts; reset_grad=true)
     Flux.update!(optim, net, grads)
 end
 

@@ -13,7 +13,7 @@ optim = Flux.setup(Flux.Adam(0.1), model)
 x = [[1, 0, 1, 0] [0, 1, 0, 1]]' .|> Int8
 
 for i in 1:100
-    loss, grads = model(x, i==1; reset_grad=true)
+    loss, grads = model(x; reset_grad=true)
     Flux.update!(optim, model, grads)
 end
 

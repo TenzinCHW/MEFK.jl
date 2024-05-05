@@ -12,7 +12,7 @@ optim = Flux.setup(Flux.Adam(0.1), model)
 x = [[1, 0, 1, 0] [0, 1, 0, 1]]' .|> Int8
 
 for i in 1:100
-    loss, grads = model(x, i==1; reset_grad=true)
+    loss, grads = model(x; reset_grad=true)
     Flux.update!(optim, model, grads)
 end
 
@@ -25,7 +25,7 @@ Test.@test all(pred == gt == x)
 model = MEFMPNK(n, N, inds)
 optim = Flux.setup(Flux.Adam(0.1), model)
 for i in 1:100
-    loss, grads = model(x, [2., 1], i==1; reset_grad=true)
+    loss, grads = model(x, [2., 1]; reset_grad=true)
     Flux.update!(optim, model, grads)
 end
 en = energy(model, [[0, 0, 0, 0] [0, 0, 0, 1] [0, 0, 1, 0] [0, 0, 1, 1] [0, 1, 0, 0] [0, 1, 0, 1] [0, 1, 1, 0] [0, 1, 1, 1] [1, 0, 0, 0] [1, 0, 0, 1] [1, 0, 1, 0] [1, 0, 1, 1] [1, 1, 0, 0] [1, 1, 0, 1] [1, 1, 1, 0] [1, 1, 1, 1]]' |> collect .|> Int8)

@@ -139,14 +139,14 @@ module MEFK
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
+    function (net::MEFMPNK)(x::AbstractMatrix; iterate_nodes=nothing, reset_grad=false)
         sz = size(x)[1]
         counts = ones(sz)
-	    net(x, counts, first_iter; iterate_nodes=iterate_nodes, reset_grad=reset_grad)
+	    net(x, counts; iterate_nodes=iterate_nodes, reset_grad=reset_grad)
     end
 
 
-    function (net::MEFMPNK)(x::AbstractMatrix, counts::AbstractVector, first_iter::Bool=false; iterate_nodes=nothing, reset_grad=false)
+    function (net::MEFMPNK)(x::AbstractMatrix, counts::AbstractVector; iterate_nodes=nothing, reset_grad=false)
 	    # compute objective
         obj = 0
         x = x |> net.array_cast
@@ -154,6 +154,7 @@ module MEFK
         #counts ./= sum(counts)
         grad_inp = []
         iterate_nodes = isnothing(iterate_nodes) ? (1:net.n) : iterate_nodes
+        first_iter = all(x .== 0) || all(counts .== 0) || all([all(w .== 0) for w in net.W])
         for i in iterate_nodes
             flip = 1 .- 2 .* x[:, i]
 
