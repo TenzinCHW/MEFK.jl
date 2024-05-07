@@ -24,6 +24,17 @@ module MEFK
     end
 
 
+    function convergedynamics(net::MPNK, x::AbstractMatrix; iterate_nodes=nothing)
+        out_ = dynamics(net, x; iterate_nodes=iterate_nodes)
+        out = dynamics(net, out_; iterate_nodes=iterate_nodes)
+        while !all(out .== out_)
+            out_ .= out
+            out = dynamics(net, out_; iterate_nodes=iterate_nodes)
+        end
+        out
+    end
+
+
     # TODO define the probability distribution for MPNK
     function energy(net::MPNK, x::AbstractMatrix)
         x = x |> net.array_cast

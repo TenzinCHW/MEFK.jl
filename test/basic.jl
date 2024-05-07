@@ -1,4 +1,4 @@
-import MEFK: MEFMPNK, dynamics, make_inds_winds, energy, energy2prob
+import MEFK: MEFMPNK, dynamics, convergedynamics, make_inds_winds, energy, energy2prob
 import Flux, Test
 
 
@@ -18,8 +18,10 @@ end
 
 pred = dynamics(model, x)
 
-gt = dynamics(model, x)
-Test.@test all(pred == gt == x)
+Test.@test all(pred == x)
+
+convx = convergedynamics(model, x)
+Test.@test all(convx == x)
 
 
 model = MEFMPNK(n, N, inds)

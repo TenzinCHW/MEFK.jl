@@ -26,3 +26,6 @@ model.W[2] = W2
 gt = dynamics(model, x; array_cast=array_cast)
 Test.@test all(pred == gt == y)
 
+convx = convergedynamics(model, x)
+Test.@test all(convx == x)
+

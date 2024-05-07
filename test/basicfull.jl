@@ -16,6 +16,9 @@ en = MEFK.energy(model, x)
 x_hat = MEFK.dynamics(model, x)
 @assert all(x_hat == x)
 
+convx = convergedynamics(model, x)
+Test.@test all(convx == x)
+
 # test partial iteration feature and no symmetrization of gradients
 model = MEFK.MEF3T(4)
 optim = Flux.setup(Flux.Adam(0.1), model)
