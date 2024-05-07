@@ -24,7 +24,7 @@ module MEFK
     end
 
 
-    function convergedynamics(net::MPNK, x::AbstractMatrix; iterate_nodes=nothing)
+    function convergedynamics(net::Union{MPNK,MEF3T,MEF2T}, x::AbstractMatrix; iterate_nodes=nothing)
         out_ = dynamics(net, x; iterate_nodes=iterate_nodes)
         out = dynamics(net, out_; iterate_nodes=iterate_nodes)
         while !all(out .== out_)
