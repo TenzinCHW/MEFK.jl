@@ -57,8 +57,8 @@ model = MPNK(num_neurons, K; array_cast=cu)
 
 You may also pass in an `Vector{Vector{AbstractMatrix{Int}}}` of `indices` to the constructor for `MPNK` to specify sparsity.
 This parameter must be of length `num_neurons`. Each inner vector contains `K-1` matrices which have at least 1 row each, and in increasing order have 1 to `K-1` columns.
-Each inner vector at index $$i$$ is a list of the combination of bits of each order that include the bit $$i$$.
-Each matrix at index j of the $$i^{th}$$ inner vector corresponds to the indices of bits for the $$j+1^{th}$$ order.
+Each inner vector at index $i$ is a list of the combination of bits of each order that include the bit $i$.
+Each matrix at index j of the $i^{th}$ inner vector corresponds to the indices of bits for the $j+1^{th}$ order.
 For example, in a 4 neuron model with order 2.
 ```
 indices = [[[2;;]], [[1; 3;;]], [[2; 4;;]], [[3;;]]]
@@ -69,5 +69,5 @@ will connect each bit to its adjacent bits.
 indices = [[[2; 3;;], [2 3;;]], [[1; 3; 4;;], [1 3; 1 4; 3 4;;]], [[1; 2; 4;;], [1 2; 1 4; 2 4;;]], [[2; 3;;], [2 3;;]]]
 ```
 will connect each bit with bits that are up to 2 indices away for 2nd and 3rd order.
-Note that the index $$i$$ does not appear in the $$i^{th}$$ element of `indices` since it is assumed to be part of any combination that appears.
+Note that the index $i$ does not appear in the $i^{th}$ element of `indices` since it is assumed to be part of any combination that appears.
 
