@@ -9,7 +9,7 @@ To add, simply start a julia session in your project home directory and enter th
 ```
 ]
 activate .
-add git@github.com:TenzinCHW/MEFK.jl.git
+add https://github.com:TenzinCHW/MEFK.jl.git
 ```
 
 
