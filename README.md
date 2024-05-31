@@ -55,6 +55,12 @@ model = MEF3T(num_neurons, array_cast=cu)
 model = MPNK(num_neurons, K; array_cast=cu)
 ```
 
+In order to save the model, all parameters must be on CPU. To transfer an instantiated model to the CPU or GPU, pass the model instance and the device array constructor into the model's respective constructor
+```
+model = typeof(model)(model, Array)  # transfer to CPU
+model = typeof(model)(model, cu)  # transfer to CUDA GPU
+```
+
 You may also pass in an `Vector{Vector{AbstractMatrix{Int}}}` of `indices` to the constructor for `MPNK` to specify sparsity.
 This parameter must be of length `num_neurons`. Each inner vector contains `K-1` matrices which have at least 1 row each, and in increasing order have 1 to `K-1` columns.
 Each inner vector at index $i$ is a list of the combination of bits of each order that include the bit $i$.
