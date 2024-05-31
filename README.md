@@ -40,11 +40,20 @@ end
 ```
 Set `reset_grad` to `false` if you need to batch the data.
 
-To converge data `x` to attractors after training `model`
+To perform a single pass of the MPN dynamics on data `x` after training `model`
 ```
 ŷ = dynamics(model, x)
 ```
+To converge data `x` to stored attractors in the MPN dynamics after training `model`, which will run the dynamics on the data recurrently until a dynamics pass no longer changes the output value.
+```
+ŷ = convergedynamics(mode, x)
+```
 
+A range or list of indices can be passed as an optional named argument `iterate_nodes` into both `dynamics` and `convergedynamics` to only perform the dynamics on specified range
+```
+itnodes = [1, 4]
+ŷ = dynamics(model, x; iterate_nodes=itnodes)
+```
 
 ### In-depth usage notes
 To use GPU for training, first import the `CUDA` or `Metal` (on MacOS) packages and initialize with 
@@ -59,6 +68,17 @@ In order to save the model, all parameters must be on CPU. To transfer an instan
 ```
 model = typeof(model)(model, Array)  # transfer to CPU
 model = typeof(model)(model, cu)  # transfer to CUDA GPU
+```
+
+With the model in CPU memory, `JLD2` or `DrWatson` (which uses `JLD2` under the hood) may be used to save the model.
+```
+JLD2.jldsave("model_file.jld2", model)  # with JLD2 imported
+DrWatson.wsave("model_file.jld2", model)  # with DrWatson imported
+```
+Loading the model from a file can then be done with
+```
+JLD2.jldopen("model_file.jld2")  # with JLD2 imported
+DrWatson.wload("model_file.jld2")  # with DrWatson imported
 ```
 
 You may also pass in an `Vector{Vector{AbstractMatrix{Int}}}` of `indices` to the constructor for `MPNK` to specify sparsity.
@@ -76,4 +96,3 @@ indices = [[[2; 3;;], [2 3;;]], [[1; 3; 4;;], [1 3; 1 4; 3 4;;]], [[1; 2; 4;;], 
 ```
 will connect each bit with bits that are up to 2 indices away for 2nd and 3rd order.
 Note that the index $i$ does not appear in the $i^{th}$ element of `indices` since it is assumed to be part of any combination that appears.
-
