@@ -96,3 +96,6 @@ indices = [[[2; 3;;], [2 3;;]], [[1; 3; 4;;], [1 3; 1 4; 3 4;;]], [[1; 2; 4;;], 
 ```
 will connect each bit with bits that are up to 2 indices away for 2nd and 3rd order.
 Note that the index $i$ does not appear in the $i^{th}$ element of `indices` since it is assumed to be part of any combination that appears.
+
+### License
+For non-commercial use, `MEFK.jl` is licensed under the GNA GPLv3, see the file LICENSE. Please contact the authors for licensing options for commercial projects.
