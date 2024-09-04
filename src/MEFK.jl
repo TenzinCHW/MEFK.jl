@@ -153,12 +153,12 @@ module MEFK
     function (net::MEFMPNK)(x::AbstractMatrix; iterate_nodes=nothing, reset_grad=false)
         sz = size(x)[1]
         counts = ones(sz)
-	    net(x, counts; iterate_nodes=iterate_nodes, reset_grad=reset_grad)
+        net(x, counts; iterate_nodes=iterate_nodes, reset_grad=reset_grad)
     end
 
 
     function (net::MEFMPNK)(x::AbstractMatrix, counts::AbstractVector; iterate_nodes=nothing, reset_grad=false)
-	    # compute objective
+        # compute objective
         obj = 0
         x = x |> net.array_cast
         counts = counts |> net.array_cast
