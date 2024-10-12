@@ -17,14 +17,15 @@ add https://github.com:TenzinCHW/MEFK.jl.git
 For 2nd order MEF, we initialize the object as follows
 ```
 import MEFK: MEF2T
-num_neurons = 10
+import Flux
+num_neurons = 4
 model = MEF2T(num_neurons)
 ```
 
 We use `MEF3T` for 3rd order. The more general `MPNK` requires another argument, `K`, or the order.
 ```
 import MEFK: MPNK
-num_neurons = 20
+num_neurons = 4
 K = 4
 model = MPNK(num_neurons, K)
 ```
@@ -42,11 +43,13 @@ Set `reset_grad` to `false` if you need to batch the data.
 
 To perform a single pass of the MPN dynamics on data `x` after training `model`
 ```
+import MEFK: dynamics
 ŷ = dynamics(model, x)
 ```
 To converge data `x` to stored attractors in the MPN dynamics after training `model`, which will run the dynamics on the data recurrently until a dynamics pass no longer changes the output value.
 ```
-ŷ = convergedynamics(mode, x)
+import MEFK: convergedynamics
+ŷ = convergedynamics(model, x)
 ```
 
 A range or list of indices can be passed as an optional named argument `iterate_nodes` into both `dynamics` and `convergedynamics` to only perform the dynamics on specified range
