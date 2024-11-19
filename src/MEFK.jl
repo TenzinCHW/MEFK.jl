@@ -231,11 +231,4 @@ module MEFK
 
         net.grad[1][i] += sum(flip .* a)
     end
-
-
-    function obj_gradient(net::MEFMPNK, x, flip, i, counts)
-        tmp = mef_obj(net, x, flip, i, counts; per_bit=true)
-        gradient(net, tmp, x, flip, i, counts)
-        return sum(tmp)
-    end
 end
