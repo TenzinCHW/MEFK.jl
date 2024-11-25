@@ -24,12 +24,14 @@ module MEFK
     end
 
 
-    function convergedynamics(net::Union{MPNK,MEF3T,MEF2T}, x::AbstractMatrix; iterate_nodes=nothing)
+    function convergedynamics(net::Union{MPNK,MEF3T,MEF2T}, x::AbstractMatrix; iterate_nodes=nothing, max_iter=100)
         out_ = dynamics(net, x; iterate_nodes=iterate_nodes)
         out = dynamics(net, out_; iterate_nodes=iterate_nodes)
-        while !all(out .== out_)
+        cnt = 0
+        while !all(out .== out_) && cnt < max_iter
             out_ .= out
             out = dynamics(net, out_; iterate_nodes=iterate_nodes)
+            cnt += 1
         end
         out
     end

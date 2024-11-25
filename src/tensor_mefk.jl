@@ -18,7 +18,7 @@ struct MEF3T{F<:AbstractFloat}
 
     function MEF3T(n::Int, W1, W2, W3; array_cast=Array)
         W2_mask = (ones(n, n) - LinearAlgebra.I) |> array_cast
-        W3_mask = MEFK.one_m_I_3D(n) |> array_cast
+        W3_mask = one_m_I_3D(n) |> array_cast
         gradients = [
             zeros(n),
             zeros(n, n) |> array_cast,
