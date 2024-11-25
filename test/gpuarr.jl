@@ -1,10 +1,16 @@
 import MEFK: MEFMPNK, dynamics, make_inds_winds
-import Flux, Test, CUDA
+import Flux, Test, Metal, CUDA
+
+
+if CUDA.functional()
+    global array_cast = CUDA.cu
+elseif Metal.functional()
+    global array_cast = Metal.mtl
+end
 
 
 n = 4
 N = 2
-array_cast = CUDA.cu
 
 inds, winds = make_inds_winds(n, N)
 model = MEFMPNK(n, N, inds; array_cast=array_cast)

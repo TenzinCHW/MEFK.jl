@@ -13,7 +13,7 @@ for i in 1:100
 end
 
 en = MEFK.energy(model, x)
-x_hat = MEFK.dynamics(model, x)
+x_hat = MEFK.convergedynamics(model, x)
 @assert all(x_hat == x)
 
 # test partial iteration feature and no symmetrization of gradients
