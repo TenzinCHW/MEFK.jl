@@ -71,7 +71,7 @@ module MEFK
 
 
         function MEFMPNK(n::Int, K::Int, W, grad, indices, windices, array_cast)
-            F = Float32
+            F = typeof(W[1][1])
             new{F}(n, K, W, grad, indices, windices, array_cast)
         end
 
@@ -81,11 +81,14 @@ module MEFK
         end
 
         """Creates all weights"""
-        function MEFMPNK(n::Int, K::Int, dtype::D=Float32; array_cast=Array) where {D<:DataType}
-            inds, winds = make_inds_winds(n, K)
+        function MEFMPNK(n::Int, K::Int, iterate_nodes=nothing, dtype::D=Float32; array_cast=Array) where {D<:DataType}
+            if isnothing(iterate_nodes)
+                iterate_nodes = 1:n
+            end
+            inds, winds, W = make_full_output_inds_winds_W(n, K, iterate_nodes)
             inds = [[i |> array_cast for i in ind] for ind in inds]
             winds = [[wi |> array_cast for wi in wind] for wind in winds]
-            W = DenseArray[zeros(dtype, binomial(n, i)) |> array_cast for i in 2:K]
+            W = DenseArray[w |> array_cast for w in W]
             pushfirst!(W, zeros(dtype, n))
             MEFMPNK(n, K, W, inds, winds, array_cast)
         end
@@ -119,13 +122,41 @@ module MEFK
     @functor MEFMPNK
 
 
-    function make_inds_winds(n::Int, K::Int)
+    function make_full_inds_winds(n::Int, K::Int)
         @assert 0 < K <= n
         combs = [collect(enumerate(combinations(1:n, i))) for i in 1:K]
         indices = [[filter(x->!(j in x[2]), comb) for comb in combs[1:end-1]] for j in 1:n]
         windices = [[filter(x->j in x[2], comb) for comb in combs[2:end]] for j in 1:n]
         [[reduce(vcat, transpose.([i[2] for i in ind])) for ind in inds] for inds in indices],
         [[Int.([wo[1] for wo in wind]) for wind in winds] for winds in windices]
+    end
+
+
+    function make_full_output_inds_winds_W(n, N, iterate_nodes)
+        indcombs = [collect(combinations(1:n, i)) for i in 1:N-1]
+        indices = [(j in iterate_nodes) ? [filter(x->!(j in x), comb) for comb in indcombs] : nothing for j in 1:n]
+        # Need to filter out combinations that don't include iterate_nodes, then enumerate
+        windcombs = [enumerate(make_products(iterate_nodes, comb)) |> collect for comb in indcombs]
+        windices = [(j in iterate_nodes) ? [filter(x->j in last(x), comb) for comb in windcombs] : nothing for j in 1:n]
+        [isnothing(inds) ? [Matrix{Int}(undef, 0, 0)] : [reduce(vcat, transpose.([i for i in ind])) for ind in inds] for inds in indices], [isnothing(winds) ? [Vector{Int}(undef, 0) for _ in 2:N] : [Int.(first.(wind)) for wind in winds] for winds in windices], zeros.(length.(windcombs))
+    end
+
+
+    function make_products(these, rest)
+        rest = [[r for r in re] for re in rest]
+        prods = []
+        for this in these
+            rest = filter(x->!(this in x), rest)
+            a = hcat(rest...)
+            if isempty(a)
+                continue
+            end
+            b = this .* ones(Int, (1, size(a)[2]))
+            c = vcat(b, a)
+            push!(prods, c)
+        end
+        out = hcat(prods...)
+        [out[:, i] for i in 1:size(out)[2]]
     end
 
 

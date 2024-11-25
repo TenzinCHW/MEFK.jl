@@ -1,4 +1,4 @@
-import MEFK: MEFMPNK, dynamics, make_inds_winds
+import MEFK: MEFMPNK, dynamics, make_full_inds_winds
 import Flux, Test, Metal, CUDA
 
 
@@ -12,7 +12,7 @@ end
 n = 4
 N = 2
 
-inds, winds = make_inds_winds(n, N)
+inds, winds = make_full_inds_winds(n, N)
 model = MEFMPNK(n, N, inds; array_cast=array_cast)
 model = MEFMPNK(n, N; array_cast=array_cast)
 optim = Flux.setup(Flux.Adam(0.1), model)

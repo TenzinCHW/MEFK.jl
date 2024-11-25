@@ -1,11 +1,11 @@
-import MEFK: MEFMPNK, dynamics, convergedynamics, make_inds_winds, energy, energy2prob
+import MEFK: MEFMPNK, dynamics, convergedynamics, make_full_inds_winds, energy, energy2prob
 import Flux, Test
 
 
 n = 4
 N = 2
 model = MEFMPNK(n, N)
-inds, _ = make_inds_winds(n, N)
+inds, _ = make_full_inds_winds(n, N)
 model = MEFMPNK(model, Array) # Test device transfer function
 model = MEFMPNK(n, N, inds) # Test both constructors
 optim = Flux.setup(Flux.Adam(0.1), model)
