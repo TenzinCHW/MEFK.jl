@@ -109,9 +109,16 @@ module MEFK
         end
 
         function MEFMPNK(net::MEFMPNK, array_cast=Array)
+            # DenseArray here is to ensure that when we push the first weight in,
+            # it doesn't get converted to the type of the rest (might be GPU arrays)
+            W = DenseArray[W |> array_cast for W in net.W[2:end]]
+            pushfirst!(W, net.W[1] |> Array)
+            grad = [g |> array_cast for g in net.grad[2:end]]
+            pushfirst(grad, net.grad[1] |> Array)
             MEFMPNK(net.n,
                     net.K,
-                    [W |> array_cast for W in net.W], [g |> array_cast for g in net.grad],
+                    W,
+                    grad,
                     [ind .|> array_cast for ind in net.indices],
                     [wind .|> array_cast for wind in net.windices],
                     array_cast)
