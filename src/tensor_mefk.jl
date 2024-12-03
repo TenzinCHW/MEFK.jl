@@ -34,13 +34,17 @@ struct MEF3T{F<:AbstractFloat}
     end
 
     function MEF3T(net::MEF3T, array_cast=Array)
+        grads = DenseArray[net.gradients[1]]
+        for g in net.gradients[2:end]
+            push!(grads, g |> array_cast)
+        end
         MEF3T(net.n,
               net.W1,
               net.W2 |> array_cast,
               net.W3 |> array_cast,
               net.W2_mask |> array_cast,
               net.W3_mask |> array_cast,
-              net.gradients .|> array_cast,
+              grads,
               array_cast)
     end
 end

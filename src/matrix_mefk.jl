@@ -29,11 +29,15 @@ struct MEF2T{F<:AbstractFloat}
     end
 
     function MEF2T(net::MEF2T, array_cast=Array)
+        grads = DenseArray[net.gradients[1]]
+        for g in net.gradients[2:end]
+            push!(grads, g |> array_cast)
+        end
         MEF2T(net.n,
               net.W1,
               net.W2 |> array_cast,
               net.W2_mask |> array_cast,
-              net.gradients .|> array_cast,
+              grads,
               array_cast)
     end
 end
